@@ -1,0 +1,297 @@
+/* ==============================================
+   IX Woo Xero Integration - Admin Styles
+   ============================================== */
+
+/* Base Styles */
+.ix-woo-xero-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.ix-woo-xero-wrap h1 {
+    color: #23282d;
+    margin-bottom: 20px;
+}
+
+/* Tabs Navigation */
+.ix-tabs-nav {
+    border-bottom: 1px solid #ccd0d4;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.ix-tabs-nav .nav-tab {
+    border: 1px solid #ccd0d4;
+    border-bottom: none;
+    background: #f1f1f1;
+    color: #555;
+    margin: 0 5px 0 0;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.2s ease;
+}
+
+.ix-tabs-nav .nav-tab:hover {
+    background: #f9f9f9;
+    color: #0073aa;
+}
+
+.ix-tabs-nav .nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #23282d;
+    margin-bottom: -1px;
+}
+
+/* Tab Content */
+.ix-tab-content {
+    display: none;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.ix-tab-content.active {
+    display: block;
+}
+
+/* Connection Status */
+.ix-connection-status {
+    padding: 15px;
+    border-left: 4px solid;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.ix-connection-status.connected {
+    border-left-color: #46b450;
+}
+
+.ix-connection-status.not-connected {
+    border-left-color: #ffb900;
+}
+
+.ix-connection-status.error {
+    border-left-color: #dc3232;
+}
+
+/* Stats Dashboard */
+.ix-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.ix-stat-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.ix-stat-card h3 {
+    margin: 0 0 10px;
+    color: #646970;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ix-stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #23282d;
+    line-height: 1.2;
+}
+
+/* Sync Controls */
+.ix-sync-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 30px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.ix-sync-section h2 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.ix-sync-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.ix-sync-buttons .button {
+    position: relative;
+}
+
+.ix-sync-buttons .button .spinner {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    visibility: hidden;
+}
+
+.ix-sync-buttons .button.syncing .spinner {
+    visibility: visible;
+}
+
+/* Log Viewer */
+.ix-log-viewer {
+    background: #1d2327;
+    color: #f0f0f1;
+    padding: 15px;
+    border-radius: 4px;
+    max-height: 500px;
+    overflow-y: auto;
+    font-family: monospace, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ix-log-viewer pre {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* Tooltips */
+.ix-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.ix-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.ix-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 782px) {
+    .ix-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ix-tabs-nav .nav-tab {
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+    
+    .ix-sync-buttons {
+        flex-direction: column;
+    }
+    
+    .ix-sync-buttons .button {
+        width: 100%;
+    }
+}
+
+/* Form Elements */
+.ix-form-table {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.ix-form-table th {
+    width: 200px;
+    text-align: left;
+    padding: 10px 0;
+    font-weight: 600;
+}
+
+.ix-form-table td {
+    padding: 10px 0;
+}
+
+.ix-form-table input[type="text"],
+.ix-form-table input[type="password"],
+.ix-form-table input[type="email"],
+.ix-form-table input[type="url"],
+.ix-form-table input[type="number"],
+.ix-form-table select {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Tracking Categories */
+.ix-tracking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.ix-tracking-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+/* Progress Bars */
+.ix-progress-bar {
+    background: #f1f1f1;
+    border-radius: 4px;
+    height: 20px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.ix-progress-bar-fill {
+    background: #0073aa;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Status Indicators */
+.ix-status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.ix-status-active {
+    background-color: #46b450;
+}
+
+.ix-status-inactive {
+    background-color: #dc3232;
+}
+
+.ix-status-pending {
+    background-color: #ffb900;
+}
