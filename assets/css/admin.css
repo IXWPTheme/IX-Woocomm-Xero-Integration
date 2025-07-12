@@ -1,0 +1,149 @@
+/* Main Tab Navigation */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.nav-tab {
+    padding: 8px 15px;
+    margin-right: 5px;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+}
+
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+    color: #000;
+}
+
+/* Tab Content */
+.ix-xero-settings-tab-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+/* Connection Status */
+.ix-xero-connection-status {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-left: 4px solid #00a0d2;
+}
+
+/* Product sync status in product list */
+.column-xero_sync {
+    width: 120px;
+    text-align: center;
+}
+
+.column-xero_sync mark {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    line-height: 1;
+    font-size: 12px;
+}
+
+.column-xero_sync mark.synced {
+    background-color: #c6e1c6;
+    color: #5b841b;
+}
+
+.column-xero_sync mark.not-synced {
+    background-color: #eba3a3;
+    color: #761919;
+}
+
+/* Xero Status Column Styling */
+.widefat .column-xero_status {
+    width: 120px;
+    text-align: center;
+}
+
+.column-xero_status mark {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    line-height: 1;
+    font-size: 12px;
+}
+
+.column-xero_status mark.status-completed {
+    background-color: #c6e1c6;
+    color: #5b841b;
+}
+
+.column-xero_status mark.status-failed {
+    background-color: #eba3a3;
+    color: #761919;
+}
+
+.column-xero_status small.meta {
+    display: block;
+    color: #777;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Bulk sync button */
+.wrap .button-secondary {
+    margin-top: 10px;
+}
+
+/* Settings form styling */
+.form-table th {
+    width: 250px;
+}
+
+.regular-text {
+    width: 100%;
+    max-width: 400px;
+}
+
+.description {
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* Add to your existing CSS */
+.ix-xero-customers-sync {
+    background: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.ix-xero-customers-sync h2 {
+    margin-top: 0;
+}
+
+/* Add this to style the sync button */
+.ix-xero-customers-sync .button-primary {
+    margin-top: 10px;
+}
+ix-xero-advanced-settings {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.ix-xero-advanced-settings h2 {
+    margin-top: 0;
+}
+
+/* Add to assets/css/admin.css */
+.column-xero_sync {
+    width: 120px;
+    text-align: center;
+}
