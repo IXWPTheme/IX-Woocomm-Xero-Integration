@@ -80,6 +80,7 @@ add_action('plugins_loaded', 'ix_woocomm_xero_init');
 // Activation and deactivation hooks
 register_activation_hook(__FILE__, function () {
     // Add default options if needed
+	//delete_option('ix_xero');
     add_option('ix_xero_auto_create_invoice', 'yes');
     add_option('ix_xero_auto_sync_products', 'yes');
 });

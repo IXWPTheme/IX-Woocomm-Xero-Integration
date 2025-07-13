@@ -10,6 +10,13 @@ class IX_Xero_Admin
 
         // Add settings link to plugin page
         add_filter('plugin_action_links_' . IX_WOOCOMM_XERO_PLUGIN_BASENAME, array($this, 'add_settings_link'));
+		
+		 // Add admin notices
+        add_action('admin_notices', array($this, 'show_admin_notices'));
+		
+		add_action('updated_option', function($option, $old_value, $value) {
+        //error_log("Option updated: {$option} from " . json_encode($old_value) . " to " . json_encode($value));
+    }, 10, 3);
     }
 
     public function add_settings_link($links)
@@ -166,9 +173,9 @@ class IX_Xero_Admin
             <?php endif; ?>
         </div>
 
-        <form action="options.php" method="post">
+         <form action="options.php" method="post">
             <?php
-            settings_fields('ix_xero');
+            settings_fields('ix_xero_connection'); // Changed to specific group
             do_settings_sections('ix-xero-settings-connection');
             submit_button(__('Save Settings', 'ix-woocomm-xero'));
             ?>
@@ -181,7 +188,7 @@ class IX_Xero_Admin
         ?>
         <form action="options.php" method="post">
             <?php
-            settings_fields('ix_xero');
+            settings_fields('ix_xero_products'); // Changed to specific group
             do_settings_sections('ix-xero-settings-products');
             submit_button(__('Save Settings', 'ix-woocomm-xero'));
             ?>
@@ -192,9 +199,9 @@ class IX_Xero_Admin
     private function render_invoices_tab()
     {
         ?>
-        <form action="options.php" method="post">
+         <form action="options.php" method="post">
             <?php
-            settings_fields('ix_xero');
+            settings_fields('ix_xero_invoices'); // Changed to specific group
             do_settings_sections('ix-xero-settings-invoices');
             submit_button(__('Save Settings', 'ix-woocomm-xero'));
             ?>
@@ -266,12 +273,12 @@ class IX_Xero_Admin
         </div>
         
         <form action="options.php" method="post">
-                <?php
-                settings_fields('ix_xero');
-                do_settings_sections('ix-xero-settings-customers');
-                submit_button(__('Save Settings', 'ix-woocomm-xero'));
-                ?>
-            </form>
+            <?php
+            settings_fields('ix_xero_customers'); // Changed to specific group
+            do_settings_sections('ix-xero-settings-customers');
+            submit_button(__('Save Settings', 'ix-woocomm-xero'));
+            ?>
+        </form>
     </div>
     <?php
 }
@@ -281,7 +288,7 @@ class IX_Xero_Admin
     <div class="ix-xero-advanced-settings">       
         <form action="options.php" method="post">
             <?php
-            settings_fields('ix_xero');
+            settings_fields('ix_xero_advanced'); // Changed to specific group
             do_settings_sections('ix-xero-settings-advanced');
             submit_button(__('Save Settings', 'ix-woocomm-xero'));
             ?>
@@ -289,12 +296,33 @@ class IX_Xero_Admin
     </div>
     <?php
 }
+	
+	
+	public function show_admin_notices() {
+        if (!current_user_can('manage_options')) return;
+        
+        // Check if we're on our settings page
+        $screen = get_current_screen();
+        if ($screen->id !== 'woocommerce_page_ix-xero-settings') return;
+        
+        // Show warning if credentials are missing
+        $client_id = get_option('ix_xero_client_id');
+        $client_secret = get_option('ix_xero_client_secret');
+        
+        if (empty($client_id) || empty($client_secret)) {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>Xero Integration:</strong> ' . __('Client ID and Client Secret are required for the plugin to function.', 'ix-woocomm-xero') . '</p>';
+            echo '</div>';
+        }
+    }
+	
+	
 
     public function settings_init() {
         // Register all settings with sanitization
         $this->register_settings();
-
-        // Connection Tab
+        
+           // Connection Tab
         add_settings_section(
             'ix_xero_section_connection',
             __('API Connection', 'ix-woocomm-xero'),
@@ -302,6 +330,7 @@ class IX_Xero_Admin
             'ix-xero-settings-connection'
         );
 
+        // Enhanced Client ID field with validation
         add_settings_field(
             'ix_xero_client_id',
             __('Client ID', 'ix-woocomm-xero'),
@@ -311,10 +340,12 @@ class IX_Xero_Admin
             array(
                 'label_for' => 'ix_xero_client_id',
                 'description' => __('Your Xero app client ID', 'ix-woocomm-xero'),
-                'default' => ''
+                'default' => '',
+                'required' => true
             )
         );
 
+        // Enhanced Client Secret field with validation
         add_settings_field(
             'ix_xero_client_secret',
             __('Client Secret', 'ix-woocomm-xero'),
@@ -324,7 +355,8 @@ class IX_Xero_Admin
             array(
                 'label_for' => 'ix_xero_client_secret',
                 'description' => __('Your Xero app client secret', 'ix-woocomm-xero'),
-                'default' => ''
+                'default' => '',
+                'required' => true
             )
         );
 
@@ -440,71 +472,160 @@ class IX_Xero_Admin
                 'label_for' => 'ix_xero_auto_sync_customers',
                 'description' => __('Automatically sync customers when they register or update their profile', 'ix-woocomm-xero'),
                 'default' => 'yes'
+            ));
+		
+		// NEW: User Role Dropdown Field
+        add_settings_field(
+            'ix_xero_default_user_role',
+            __('Default User Role', 'ix-woocomm-xero'),
+            array($this, 'field_user_role_cb'),
+            'ix-xero-settings-customers',
+            'ix_xero_section_customers',
+            array(
+                'label_for' => 'ix_xero_default_user_role',
+                'description' => __('Default role assigned to new customers synced from Xero', 'ix-woocomm-xero'),
+                'default' => 'customer'
+            ));
+		// NEW: B2B Groups Customer Group Dropdown
+        add_settings_field(
+            'ix_xero_customer_group',
+            __('B2B Customer Group', 'ix-woocomm-xero'),
+            array($this, 'field_customer_group_cb'),
+            'ix-xero-settings-customers',
+            'ix_xero_section_customers',
+            array(
+                'label_for' => 'ix_xero_customer_group',
+                'description' => __('Default customer group for synced B2B users', 'ix-woocomm-xero'),
+                'default' => '5804'
             )
         );
 		 // Advanced Tab
-    add_settings_section(
-        'ix_xero_section_advanced',
-        __('Advanced Settings', 'ix-woocomm-xero'),
-        array($this, 'section_advanced_cb'),
-        'ix-xero-settings-advanced'
-    );
+		add_settings_section(
+			'ix_xero_section_advanced',
+			__('Advanced Settings', 'ix-woocomm-xero'),
+			array($this, 'section_advanced_cb'),
+			'ix-xero-settings-advanced'
+		);
 
-    add_settings_field(
-        'ix_xero_debug_mode',
-        __('Debug Mode', 'ix-woocomm-xero'),
-        array($this, 'field_checkbox_cb'),
-        'ix-xero-settings-advanced',
-        'ix_xero_section_advanced',
-        array(
-            'label_for' => 'ix_xero_debug_mode',
-            'description' => __('Enable detailed error logging and debugging information', 'ix-woocomm-xero')
-        )
-    );
+		add_settings_field(
+			'ix_xero_debug_mode',
+			__('Debug Mode', 'ix-woocomm-xero'),
+			array($this, 'field_checkbox_cb'),
+			'ix-xero-settings-advanced',
+			'ix_xero_section_advanced',
+			array(
+				'label_for' => 'ix_xero_debug_mode',
+				'description' => __('Enable detailed error logging and debugging information', 'ix-woocomm-xero')
+			)
+		);
 
-    // Register the setting
-    register_setting('ix_xero', 'ix_xero_debug_mode', array(
-        'type' => 'string',
-        'sanitize_callback' => 'sanitize_text_field',
-        'default' => 'no'
-    ));
+		// Register the setting
+		register_setting('ix_xero', 'ix_xero_debug_mode', array(
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'default' => 'no'
+		));
 		
     }
+	/**
+     * NEW: Get editable user roles (excluding administrative roles)
+     */
+    private function get_editable_user_roles() {
+        global $wp_roles;
+        $all_roles = $wp_roles->roles;
+        $editable_roles = array();
+        $excluded = array('administrator', 'editor', 'author');
 
-    private function register_settings()
-    {
-        // Connection settings
-        register_setting('ix_xero', 'ix_xero_client_id', 'sanitize_text_field');
-        register_setting('ix_xero', 'ix_xero_client_secret', 'sanitize_text_field');
+        foreach ($all_roles as $role => $details) {
+            if (!in_array($role, $excluded)) {
+                $editable_roles[$role] = $details;
+            }
+        }
+
+        return $editable_roles;
+    }
+
+    private function register_settings() {
+        // Connection settings - use separate option group
+        register_setting('ix_xero_connection', 'ix_xero_client_id', array(
+            'type' => 'string',
+            'sanitize_callback' => array($this, 'sanitize_client_credential'),
+            'default' => ''
+        ));
+        
+        register_setting('ix_xero_connection', 'ix_xero_client_secret', array(
+            'type' => 'string',
+            'sanitize_callback' => array($this, 'sanitize_client_credential'),
+            'default' => ''
+        ));
 
         // Product settings
-        register_setting('ix_xero', 'ix_xero_auto_sync_products', array(
+        register_setting('ix_xero_products', 'ix_xero_auto_sync_products', array(
             'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
             'default' => 'yes'
         ));
-        register_setting('ix_xero', 'ix_xero_inventory_account_code', 'sanitize_text_field');
+        register_setting('ix_xero_products', 'ix_xero_inventory_account_code', 'sanitize_text_field');
 
         // Invoice settings
-        register_setting('ix_xero', 'ix_xero_auto_create_invoice', array(
+        register_setting('ix_xero_invoices', 'ix_xero_auto_create_invoice', array(
             'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
             'default' => 'yes'
         ));
-        register_setting('ix_xero', 'ix_xero_invoice_prefix', array(
+        register_setting('ix_xero_invoices', 'ix_xero_invoice_prefix', array(
             'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
             'default' => 'PHSC-'
         ));
-        register_setting('ix_xero', 'ix_xero_sales_account_code', 'sanitize_text_field');
-        register_setting('ix_xero', 'ix_xero_shipping_account_code', 'sanitize_text_field');
+        register_setting('ix_xero_invoices', 'ix_xero_sales_account_code', 'sanitize_text_field');
+        register_setting('ix_xero_invoices', 'ix_xero_shipping_account_code', 'sanitize_text_field');
 
         // Customer settings
-        register_setting('ix_xero', 'ix_xero_auto_sync_customers', array(
+        register_setting('ix_xero_customers', 'ix_xero_auto_sync_customers', array(
             'type' => 'string',
             'sanitize_callback' => 'sanitize_text_field',
             'default' => 'yes'
         ));
+        register_setting('ix_xero_customers', 'ix_xero_default_user_role', array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'customer'
+        ));
+        register_setting('ix_xero_customers', 'ix_xero_customer_group', array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => '5804'
+        ));
+
+        // Advanced settings
+        register_setting('ix_xero_advanced', 'ix_xero_debug_mode', array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'no'
+        ));
+    }
+	 /**
+     * Custom sanitization for client credentials
+     */
+    public function sanitize_client_credential($value, $option_name = '') {
+        $value = trim($value);
+        
+        // If empty value is provided, keep the existing value
+        if (empty($value)) {
+            $old_value = get_option($option_name);
+            if (!empty($old_value)) {
+                add_settings_error(
+                    'ix_xero_messages',
+                    'ix_xero_credential_error',
+                    __('Client credentials cannot be empty. The existing value has been preserved.', 'ix-woocomm-xero'),
+                    'error'
+                );
+                return $old_value;
+            }
+        }
+        
+        return $value;
     }
 
     public function section_connection_cb()
@@ -590,4 +711,43 @@ class IX_Xero_Admin
             <p class="description"><?php echo esc_html($args['description']); ?></p>
         <?php endif;
     }
+	/**
+     * NEW: User Role Dropdown Callback
+     */
+    public function field_user_role_cb($args) {
+        $selected = get_option($args['label_for'], $args['default'] ?? 'customer');
+        $roles = $this->get_editable_user_roles();
+        ?>
+        <select id="<?php echo esc_attr($args['label_for']); ?>" name="<?php echo esc_attr($args['label_for']); ?>">
+            <?php foreach ($roles as $role => $details): ?>
+                <option value="<?php echo esc_attr($role); ?>" <?php selected($selected, $role); ?>>
+                    <?php echo esc_html($details['name']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif;
+    }
+	/**
+     * NEW: Customer Group Dropdown Callback
+     */
+    public function field_customer_group_cb($args) {
+        $selected = get_option($args['label_for'], $args['default'] ?? '5804');
+        ?>
+        <select id="<?php echo esc_attr($args['label_for']); ?>" 
+                name="<?php echo esc_attr($args['label_for']); ?>" 
+                class="ix_user_settings_select">
+            <optgroup label="B2C Group">
+                <option value="4013" <?php selected($selected, '4013'); ?>>B2C Users</option>
+            </optgroup>
+            <optgroup label="B2B Groups">
+                <option value="5804" <?php selected($selected, '5804'); ?>>B2B Users</option>
+            </optgroup>
+        </select>
+        <?php if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif;
+    }
+
 }

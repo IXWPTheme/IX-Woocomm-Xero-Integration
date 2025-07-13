@@ -202,9 +202,13 @@ class IX_Xero_Woocommerce_Users {
             }
 
             $user = get_user_by('id', $user_id);
+			
+			
+			$default_role = get_option('ix_xero_default_user_role', 'customer');
+			$user->set_role($default_role);
             
             // Set user role
-            $user->set_role('customer');
+            //$user->set_role('customer');
             
             // Send notification
             wp_send_new_user_notifications($user_id, 'user');
@@ -241,50 +245,64 @@ class IX_Xero_Woocommerce_Users {
     }
 
     private function update_user_from_xero_contact($user, $contact) {
-        // Basic info
-        update_user_meta($user->ID, 'first_name', sanitize_text_field($contact['FirstName'] ?? ''));
-        update_user_meta($user->ID, 'last_name', sanitize_text_field($contact['LastName'] ?? ''));
-		update_user_meta($user->ID, 'b2bking_customergroup', '4014' ?? '4014');
-		update_user_meta($user->ID, 'salesking_assigned_agent', '4' ?? '4');
-		        
-        // Phone numbers
-        if (!empty($contact['Phones'])) {
-            foreach ($contact['Phones'] as $phone) {
-                if ($phone['PhoneType'] === 'DEFAULT') {
-                    update_user_meta($user->ID, 'billing_phone', sanitize_text_field($phone['PhoneNumber']));
-                    break;
-                }
-            }
-        }
-		
-		 // billing_company Name
-        if (!empty($contact['Name'])) {
-            foreach ($contact['Name'] as $name) {                
-                    update_user_meta($user->ID, 'billing_company', sanitize_text_field($name['Name']));
-                    break;               
-            }
-        }
-        
-        // Addresses 
-        if (!empty($contact['Addresses'])) {
-            foreach ($contact['Addresses'] as $address) {
-					if ($address['AddressType'] === 'STREET') {
-						update_user_meta($user->ID, 'billing_address_1', sanitize_text_field($address['AddressLine1'] ?? ''));
-						update_user_meta($user->ID, 'billing_address_2', sanitize_text_field($address['AddressLine2'] ?? ''));
-						update_user_meta($user->ID, 'billing_city', sanitize_text_field($address['City'] ?? ''));
-						update_user_meta($user->ID, 'billing_state', sanitize_text_field($address['Region'] ?? ''));
-						update_user_meta($user->ID, 'billing_postcode', sanitize_text_field($address['PostalCode'] ?? ''));
-						update_user_meta($user->ID, 'billing_country', sanitize_text_field($address['Country'] ?? ''));
+		try {
+			// Basic info
+			update_user_meta($user->ID, 'first_name', sanitize_text_field($contact['FirstName'] ?? ''));
+			update_user_meta($user->ID, 'last_name', sanitize_text_field($contact['LastName'] ?? ''));
+			//update_user_meta($user->ID, 'b2bking_customergroup', '4014' ?? '');
+			// Get the default customer group from settings
+        	$ix_customer_group = get_option('ix_xero_customer_group', '0');
+			// Update user meta
+        	update_user_meta($user->ID, 'b2bking_customergroup', $ix_customer_group);
+			update_user_meta($user->ID, 'b2bking_b2buser', 'yes');
+			update_user_meta($user->ID, 'salesking_assigned_agent', '4');
+
+			// Phone numbers
+			if (!empty($contact['Phones'])) {
+				foreach ($contact['Phones'] as $phone) {
+					if ($phone['PhoneType'] === 'DEFAULT') {
+						update_user_meta($user->ID, 'billing_phone', sanitize_text_field($phone['PhoneNumber']));
 						break;
 					}
-            }
-        }
-        
-        // Store Xero contact ID
-        update_user_meta($user->ID, '_xero_contact_id', sanitize_text_field($contact['ContactID']));
-        update_user_meta($user->ID, '_xero_last_sync', current_time('mysql'));
-    }
+				}
+			}
 
+			// billing_company (simplified)
+			if (!empty($contact['Name'])) {
+				update_user_meta($user->ID, 'billing_company', sanitize_text_field($contact['Name']));
+			}
+
+			// Addresses (safer)
+			if (!empty($contact['Addresses'])) {
+				foreach ($contact['Addresses'] as $address) {
+					if ($address['AddressType'] === 'STREET') {
+						$address_fields = [
+							'billing_address_1' => $address['AddressLine1'] ?? '',
+							'billing_address_2' => $address['AddressLine2'] ?? '',
+							'billing_city'      => $address['City'] ?? '',
+							'billing_state'     => $address['Region'] ?? '',
+							'billing_postcode'  => $address['PostalCode'] ?? '',
+							'billing_country'   => $address['Country'] ?? '',
+						];
+						foreach ($address_fields as $key => $value) {
+							if (!empty($value)) {
+								update_user_meta($user->ID, $key, sanitize_text_field($value));
+							}
+						}
+						break;
+					}
+				}
+			}
+
+			// Store Xero contact ID and sync time
+			update_user_meta($user->ID, '_xero_contact_id', sanitize_text_field($contact['ContactID']));
+			update_user_meta($user->ID, '_xero_last_sync', current_time('mysql'));
+
+		} catch (Exception $e) {
+			error_log("Xero Contact Sync Failed for User {$user->ID}: " . $e->getMessage());
+		}
+}
+	
     public function sync_contacts_from_xero_admin() {
 		
 		if (!current_user_can('manage_options')) {
